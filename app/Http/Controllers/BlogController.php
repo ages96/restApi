@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Models\Blog;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\SubmitEmailSub;
 
 class BlogController extends Controller
 {
@@ -45,11 +47,28 @@ class BlogController extends Controller
             $saved = $post->save();
 
             if($saved){
+
+                $subs = Subscription::where("blog_id","=",null)
+                    ->where("sent", 0)
+                    ->get();
+
+                if (count($subs)>0){
+                    foreach ($subs as $key => $value) {
+                        if (strlen($value)>0) {
+                            $data["title"] = $request->title;
+                            $data["description"] = $request->description;
+                            $data["receiver"] = $value->email;
+                            $emailSub = (new SubmitEmailSub($data));
+                            dispatch($emailSub);
+                        }
+                    }
+                }
+
                 return response()->json(['message' => 'Created Successfuly', 'data' => (object) null], 200);
             }
 
         } catch (\Exception $e){
-            return response()->json(['message' => 'Something went wrong', 'data' => (object) null], 500);
+            return response()->json(['message' => $e->getMessage(), 'data' => (object) null], 500);
         }
 
     }

@@ -21,5 +21,10 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         $router->get('/detail/{id}', 'BlogController@detail');
         $router->post('/store', 'BlogController@store');
     });
+
+    $router->group(['prefix' => 'subscription'], function () use ($router) {
+        $router->post('/subscribe', 'SubscriptionController@subscribe');
+        $router->delete('/unsubscribe', 'SubscriptionController@unsubscribe');
+    });
     
 });
